@@ -7,7 +7,6 @@ const App = Express()
 //
 App.use(Express.json())
 App.use(Express.urlencoded({extended: true}))
-
 //Logger Middleware
 App.use((request,response,next)=>{
     logger().info({
