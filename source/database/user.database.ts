@@ -78,8 +78,6 @@ export class user_schema{
             const create_query = `INSERT INTO user_data(id,name,email,passwd,created_at) VALUES($1,$2,$3,$4,NOW());`
             const response = await database.query(create_query,[data.id,data.name,data.email,data.password])
 
-            console.log(response)
-
             if(response){
                 return{
                     success:true,
@@ -94,7 +92,7 @@ export class user_schema{
         } catch (error) {
             return{
                 success:false,
-                message:"error in database"
+                message:"error in database !!"
             }
         }
     }

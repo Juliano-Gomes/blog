@@ -1,3 +1,4 @@
+import { Account } from './routes/createAccount'
 import { ForgotPassRouter } from './routes/forgetPass'
 import { ResetPassRouter } from './routes/resetPass'
 import {redis} from './services/redis.config'
@@ -22,6 +23,7 @@ App.use((request,response,next)=>{
 // 
 App.use(ForgotPassRouter)
 App.use(ResetPassRouter)
+App.use(Account)
 //
 const PORT = process.env.PORT
 const init = async()=>{ 
