@@ -1,6 +1,8 @@
 import {redis} from '../services/redis.config';
 import { Router } from "express";
 import {z, ZodError} from "zod";
+import { User_controller_O } from '../utils/user.controller';
+
 
 export const ResetPassRouter = Router();
 
@@ -17,10 +19,21 @@ ResetPassRouter.post("/newPass",async(request,response)=>{
         //code verification
         if(r !== null && typeof(r) === 'string'){
             if(r.trim().toLowerCase() === code.trim().toLowerCase()){
-                //reset password logic here
-                response.status(200).json({
-                    message: "Password reset successfully",
+                const user = new User_controller_O()
+                const rs =await user.UPDATE_PASS({
+                    email,
+                    newPass:password
                 })
+                //reset password logic here
+                if(rs.success){
+                    response.status(200).json({
+                        message: rs.message,
+                    })
+                }else{
+                    response.status(400).json({
+                        message: rs.message,
+                    })
+                }
             }else{
                 return response.status(400).json({
                     message: "invalid code,try to generate a new reset code"

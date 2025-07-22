@@ -1,4 +1,5 @@
 import { ForgotPassRouter } from './routes/forgetPass'
+import { ResetPassRouter } from './routes/resetPass'
 import {redis} from './services/redis.config'
 import Express from 'express'
 import logger from 'pino'
@@ -20,6 +21,7 @@ App.use((request,response,next)=>{
 
 // 
 App.use(ForgotPassRouter)
+App.use(ResetPassRouter)
 //
 const PORT = process.env.PORT
 const init = async()=>{ 
