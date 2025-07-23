@@ -1,5 +1,7 @@
 import { Account } from './routes/createAccount'
+import { POST } from './routes/createPost'
 import { ForgotPassRouter } from './routes/forgetPass'
+import { LOGGER } from './routes/loginAccount'
 import { ResetPassRouter } from './routes/resetPass'
 import {redis} from './services/redis.config'
 import Express from 'express'
@@ -24,6 +26,8 @@ App.use((request,response,next)=>{
 App.use(ForgotPassRouter)
 App.use(ResetPassRouter)
 App.use(Account)
+App.use(POST)
+App.use(LOGGER)
 //
 const PORT = process.env.PORT
 const init = async()=>{ 

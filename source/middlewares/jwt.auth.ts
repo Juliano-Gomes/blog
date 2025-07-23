@@ -7,9 +7,7 @@ export class JWT{
         username: string,
     }):Promise<{success:boolean,token?:string}>{
         try {
-            const response = sign(data.username,this.secret,{
-                expiresIn: '1d',
-            })
+            const response = sign(data.username,this.secret)
 
             if(response.trim() !== "" && response !== null){
                 return{
@@ -67,6 +65,5 @@ export class JWT{
                 })
             }
         }
-    }
-    
+    }  
 }

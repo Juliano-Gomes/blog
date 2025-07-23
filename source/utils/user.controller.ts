@@ -1,5 +1,6 @@
 import { user_schema } from "../database/user.database";
 import { compare, genSalt, hash } from "bcrypt";
+import { QueryResult } from "pg";
 import { v4 as uuid } from "uuid";
 
 export class User_controller_O extends user_schema {
@@ -92,6 +93,75 @@ export class User_controller_O extends user_schema {
             return{
                 success:false,
                 message:"an error while creating user try again later"
+            }
+        }
+    }
+
+    async LOG_USER({email,password}:{email:string,password:string}):Promise<{success:boolean,data?:QueryResult,message?:string}>{
+        try {
+            const data = await this.verify({
+                email
+            })
+
+            if(data.success && data.data && data.data.rows.length > 0 ){
+                const rs = await this.DECRYPT({
+                    hash:data.data.rows[0].passwd,
+                    passwd:password
+                })
+
+                if(rs){
+                    //more code kkkk
+                    const ALL = await this.RELATIONSHIP_FIRST_LOGIN_ALL_DATA({email})
+
+                    if(ALL.success && ALL.data && ALL.data.rows.length > 0){
+                        return {
+                            success:true,
+                            data:ALL.data
+                        }
+                    }else{
+                        return{
+                            message:ALL.message,
+                            success:false
+                        }
+                    }
+                    
+                }else{
+                    return{
+                        success:false,
+                        message:"Invalid Email Or Password !!"
+                    }
+                }
+            }else{
+                return{
+                    success:data.success,
+                    message:data.message
+                }
+            }
+        } catch (error) {
+            return{
+                success:false,
+                message:"Invalid credential, provide all fields"
+            }
+        }
+    }
+
+    async POST_ADD({author,title,image}:{title:string,author:string,image?:string}):Promise<{message:string,success:boolean}>{
+        try {
+            const id = uuid()
+            const {message,success} = await this.addPost({
+                id,
+                title,
+                author,
+                image
+            })
+            return{
+                success,
+                message
+            }
+        } catch (error) {
+            return{
+                success:false,
+                message:"we couldn't add that post !!"
             }
         }
     }
