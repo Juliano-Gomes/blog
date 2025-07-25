@@ -118,6 +118,11 @@ export class User_controller_O extends user_schema {
                             success:true,
                             data:ALL.data
                         }
+                    }else if(rs){
+                        return{
+                            success:true,
+                            data:data.data
+                        }
                     }else{
                         return{
                             message:ALL.message,
@@ -162,6 +167,44 @@ export class User_controller_O extends user_schema {
             return{
                 success:false,
                 message:"we couldn't add that post !!"
+            }
+        }
+    }
+
+    async get_post_from_id(id:string){
+        try {
+            const response = await this.get_a_post_by_id(id)
+            if(response.success && response.data && response.data.length > 0){
+                    return{
+                        success:true,
+                        result:response.data
+                    }
+                }else{
+                    return{
+                        success:false,
+                        message:response.message
+                    }
+                }  
+        } catch (error) {
+            return{
+                success:false,
+                message:"an error has occurred"
+            }
+        }
+    }
+
+    async deletePost(id:string,author:string){
+        try {
+            const data =await  this.d_post(id,author)
+            
+            return{
+                success:data.success,
+                message:data.message
+            }
+        } catch (error) {
+            return{
+                success:false,
+                message:"an error while deleting post"
             }
         }
     }

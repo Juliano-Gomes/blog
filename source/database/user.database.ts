@@ -193,4 +193,78 @@ export class user_schema{
             }
         }
     }
+
+    async get_a_post_by_id(id:string){
+        const database = await db.connect()
+        try {
+            const get_query = `SELECT * FROM post_user INNER JOIN comment ON comment.post_id = post_user.id WHERE post_user.id = $1 ;`
+            const get_query_all = `SELECT * FROM post_user INNER JOIN comment ON comment.post_id = post_user.id;`
+
+            if(id === "all"){
+                const response = await database.query(get_query_all)
+
+                if(response.rows && response.rows.length > 0){
+                    return{
+                        success:true,
+                        data:response.rows
+                    }
+                }else{
+                    return{
+                        success:false,
+                        message:"no post founded by this id "
+                    }
+                }
+            }else{
+                const response = await database.query(get_query,[id])
+                if(response.rows && response.rows.length > 0){
+                    return{
+                        success:true,
+                        data:response.rows
+                    }
+                }else{
+                    return{
+                        success:false,
+                        message:"no post founded by this id "
+                    }
+                }
+
+            }
+            
+        } catch (error) {
+            return{
+                success:false,
+                message:"no post founded by this id !!"
+            }
+        }
+    }
+
+    async d_post(id:string,author:string){
+        const database = await db.connect()
+        try{
+            const q = `DELETE FROM comment WHERE post_id = $1;`
+            const delete_query=`DELETE  FROM post_user  WHERE post_user.id = $1 AND post_user.author = $2;` //
+            await database.query(q,[id])
+            const response = await database.query(delete_query,[id,author])
+
+
+
+            if(response.rowCount && response.rowCount > 0){
+                return {
+                    success:true,
+                    message:"post deleted successfully"
+                }
+
+            }else{
+                return{
+                    success:false,
+                    message:"an error occurred in process of deleting thi post"
+                }
+            }
+        }catch(error){
+            return{
+                success:false,
+                message:"an error while deleting database !!"
+            }
+        }
+    }
 }

@@ -13,13 +13,22 @@ export type userRowAtributes = {
 }
 
 export type betterResponse={ 
-    username: string, 
-    email: string, 
-    post: { 
-        postname: string, 
-        postAuthor: string, 
-        postComents: string, 
-        postCommenter: string, 
-    }[],
+    postname: string, 
+    postID:string,
+    postAuthor: string, 
+    postimage: string, 
+    postComents: string, 
+    postCommenter: string, 
     postCreatedAt: string, 
+}
+
+export type getPostType ={
+    id: string,
+    title: string,
+    author: string,
+    imagepost: string,
+    created_at: string,
+    commenter: string,
+    post_id: string,
+    comment: string
 }

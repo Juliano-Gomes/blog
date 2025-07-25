@@ -3,7 +3,7 @@ import { JWT } from "../middlewares/jwt.auth";
 import { User_controller_O } from "../utils/user.controller";
 import { IMAGE } from "../services/multer.config";
 import multer,{MulterError} from 'multer'
-import {z} from "zod";
+import {z, ZodError} from "zod";
 
 const Config = multer({
     storage:IMAGE
@@ -35,6 +35,8 @@ POST.post("/newPost",instanceJWT.auth_tk_provided_by_user,Config.single("postIma
     } catch (error) {
         if(error instanceof MulterError) {
             response.status(400).json({message:"Error uploading image"});
+        }else if(error instanceof ZodError){
+            response.status(406).json({message:"Invalid data type"});
         }
         else{
             response.status(500).json({message:"Error creating post"});

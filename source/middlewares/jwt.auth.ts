@@ -8,7 +8,6 @@ export class JWT{
     }):Promise<{success:boolean,token?:string}>{
         try {
             const response = sign(data.username,this.secret)
-
             if(response.trim() !== "" && response !== null){
                 return{
                     success:true,
@@ -28,18 +27,13 @@ export class JWT{
 
     async auth_tk_provided_by_user(request:Request,response:Response,next:NextFunction){
         try {
+            const secret = process.env.JTW_SECRET_KEY!
             const token = request.headers.authorization?.split(" ")
-
             if(token && token?.length > 0 && token[1].trim() !== ""){
-                const decoded = verify(token[1],this.secret)
+                const decoded = verify(token[1],secret)
                 
-                console.log({
-                    code : decoded,
-                    message:"Jwt",
-                    secret:this.secret
-                })
-
                 if(decoded){
+                    request.headers.mandator = decoded as string
                     next()
                 }else{
                     response.status(403).json({
