@@ -24,7 +24,7 @@ export type betterResponse={
 
 export type getPostType ={
     id: string,
-    title: string,
+    description: string,
     author: string,
     imagepost: string,
     created_at: string,

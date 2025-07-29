@@ -12,7 +12,7 @@ export const ORDER_BY_ID=(data:betterResponse[],ids:string[])=>{
         })
         res.push({
             post:{
-                title:i[0].postname,
+                description:i[0].postname,
                 id:i[0].postID,
                 author:i[0].postAuthor,
                 image:i[0].postimage
@@ -36,7 +36,7 @@ export const ORDER_BY_ID_Post=(data:getPostType[],ids:string[])=>{
         })
         res.push({
             post:{
-                title:i[0].title,
+                description:i[0].description,
                 id:i[0].post_id,
                 author:i[0].author,
                 image:i[0].imagepost
