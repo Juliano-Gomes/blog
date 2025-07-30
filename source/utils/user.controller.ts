@@ -2,6 +2,9 @@ import { user_schema } from "../database/user.database";
 import { compare, genSalt, hash } from "bcrypt";
 import { QueryResult } from "pg";
 import { v4 as uuid } from "uuid";
+import {rm} from 'fs/promises' 
+import { join } from "path";
+
 
 export class User_controller_O extends user_schema {
     constructor() {
@@ -150,14 +153,15 @@ export class User_controller_O extends user_schema {
         }
     }
 
-    async POST_ADD({author,title,image}:{title:string,author:string,image?:string}):Promise<{message:string,success:boolean}>{
+    async POST_ADD({author,title,image,tag}:{title:string,author:string,image?:string,tag:string}):Promise<{message:string,success:boolean}>{
         try {
             const id = uuid()
             const {message,success} = await this.addPost({
                 id,
                 title,
                 author,
-                image
+                image,
+                tag
             })
             return{
                 success,
@@ -195,17 +199,59 @@ export class User_controller_O extends user_schema {
 
     async deletePost(id:string,author:string){
         try {
-            const data =await  this.d_post(id,author)
-            
-            return{
-                success:data.success,
-                message:data.message
+            const data =await this.d_post(id,author)
+
+            //deletar a imagem no banco...
+            if(data.image){
+                const iPath = join(__dirname,'..','images',data.image)
+                await rm(iPath)
+                return{
+                    success:data.success,
+                    message:data.message
+                }
+            }else{
+                return{
+                    success:false,
+                    message:"an error while deleting post"
+                }
             }
         } catch (error) {
             return{
                 success:false,
                 message:"an error while deleting post"
             }
+        }
+    }
+
+    async ad_c({comment,commenter,post_id}:{comment:string,commenter:string,post_id:string}){
+        try {
+            const response = await this.addComment({
+                comment,
+                commenter,
+                post_id
+            })
+
+            return{
+                message:response.message,
+                success:response.success
+            }
+        } catch (error) {
+            return{
+                success:false,
+                message:"an error while adding comment,try later on"
+            }
+        }
+    }
+
+    async adLikes({post_id}:{post_id:string}){
+        try {
+            const response = await this.addLike({
+                post_id
+            })
+
+            return{message:response.message,success:response.success}
+        } catch (error) {
+            return{message:"a server error",success:false}
         }
     }
 }

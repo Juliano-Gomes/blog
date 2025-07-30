@@ -15,17 +15,18 @@ const instanceJWT = new JWT()
 POST.post("/newPost",instanceJWT.auth_tk_provided_by_user,Config.single("postImage"),async(request,response)=>{
     const postParser = z.object({
         title:z.string(),
-        author:z.string()
+        author:z.string(),
+        tag:z.string()
     })
     try {
         const image =request.file
-        const {author,title} = postParser.parse(request.body)
-
+        const {author,title,tag} = postParser.parse(request.body)
         const c = new User_controller_O()
         const {message,success} =await c.POST_ADD({
             title,
             author,
-            image:image?.destination
+            tag,
+            image:image?.filename
         })
         if(success){
             response.status(201).json({message})

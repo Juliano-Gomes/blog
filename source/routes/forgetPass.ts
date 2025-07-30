@@ -22,7 +22,7 @@ ForgotPassRouter.post("/reset_Link",async(request,response)=>{
                 from: process.env.USER,
                 to: email,
                 subject: 'Password Reset Link',
-                text: `the reset code is ${code}. It will expire in 30 minutes.`,  
+                text: `This is the reset password code ${code} . It will expire in 30 minutes.Don't share it with anyone !!`, 
             })
             
             response.status(200).json({

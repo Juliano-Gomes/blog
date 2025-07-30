@@ -1,5 +1,7 @@
+import { join } from 'path'
 import { Account } from './routes/createAccount'
 import { POST } from './routes/createPost'
+import cors from 'cors'
 import { deletePost } from './routes/deletePost'
 import { ForgotPassRouter } from './routes/forgetPass'
 import { getAllPost } from './routes/getAllPost'
@@ -9,10 +11,15 @@ import { ResetPassRouter } from './routes/resetPass'
 import {redis} from './services/redis.config'
 import Express from 'express'
 import logger from 'pino'
+import { AddComment } from './routes/addComent'
+import { AddLikes } from './routes/addLikes'
 //
 const App = Express()
 //
 App.use(Express.json())
+App.use(cors({
+    origin:"*"
+}))
 App.use(Express.urlencoded({extended: true}))
 //Logger Middleware
 App.use((request,response,next)=>{
@@ -25,6 +32,8 @@ App.use((request,response,next)=>{
     next()
 })
 
+App.use("/postImage",Express.static(join(__dirname,'images')))
+
 // 
 App.use(ForgotPassRouter)
 App.use(ResetPassRouter)
@@ -34,6 +43,8 @@ App.use(LOGGER)
 App.use(getPost)
 App.use(deletePost)
 App.use(getAllPost)
+App.use(AddComment)
+App.use(AddLikes)
 //
 const PORT = process.env.PORT
 const init = async()=>{ 

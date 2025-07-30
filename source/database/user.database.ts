@@ -1,5 +1,6 @@
 import { QueryResult } from "pg";
 import { db } from "./pool";
+import {v4 as uuid} from 'uuid'
 
 export class user_schema{
     constructor(){
@@ -12,7 +13,7 @@ export class user_schema{
             const q = `CREATE TABLE IF NOT EXISTS user_data(
             id VARCHAR(200),
             name VARCHAR(100) NOT NULL ,
-            email VARCHAR(150) NOT NULL UNIQUE,
+            email VARCHAR(150) UNIQUE,
             PRIMARY KEY(email),
             passwd VARCHAR(200) NOT NULL,
             created_at TIMESTAMP DEFAULT NOW()
@@ -21,39 +22,43 @@ export class user_schema{
             const post = `
             CREATE TABLE IF NOT EXISTS post_user(
             id VARCHAR(200) PRIMARY KEY,
-            title VARCHAR(100) NOT NULL,
-            author VARCHAR(100) NOT NULL ,
-            FOREIGN KEY (author) REFERENCES user_data(email) ,
-            imagepost VARCHAR(255),
-            created_at TIMESTAMP DEFAULT NOW())
+            description VARCHAR(100) NOT NULL,
+            imagepost VARCHAR(255) ,
+            tag VARCHAR(255) NOT NULL,
+            likes INTEGER,
+            created_at TIMESTAMP DEFAULT NOW(),
+            author VARCHAR(100),
+            FOREIGN KEY (author) REFERENCES user_data(email) ON DELETE  CASCADE ON UPDATE CASCADE )
             `
 
             const comment = `
             CREATE TABLE IF NOT EXISTS comment(
             id VARCHAR(200) PRIMARY KEY,
             commenter VARCHAR(100) NOT NULL,
-            post_id VARCHAR(200) NOT NULL ,
-            FOREIGN KEY (post_id) REFERENCES post_user (id),
             comment VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT NOW())`
+            created_at TIMESTAMP DEFAULT NOW(),
+            post_id VARCHAR(200),
+            FOREIGN KEY (post_id) REFERENCES post_user (id) ON DELETE  CASCADE)`
 
             await database.query(q)
             await database.query(post)
             await database.query(comment)
         } catch (error) {
-            console.log("an error in creating db !!")  //output error.message : to show the issue   
+            console.log("an error in creating db !!" )  //output error.message : to show the issue   
         }finally{
             database.release();
         }
     }
 
-    async addPost(data:{id:string,title:string,author:string,image?:string}):Promise<{message:string,success:boolean}>{
+    async addPost(data:{id:string,title:string,author:string,image?:string,tag:string}):Promise<{message:string,success:boolean}>{
         const database = await db.connect()
         try {
-            if(data.image && data.image.trim() !== ""){
-                const post_query = `INSERT INTO post_user(id,title,author,imagepost,created_at) VALUES($1,$2,$3,$4,NOW())`
-    
-                const response = await database.query(post_query,[data.id,data.title,data.author,data.image])
+            console.log(data)
+            if(data && data.image && data.image.trim() !== ""){
+                const id = uuid()
+                const post_query = `INSERT INTO post_user(id,description,author,imagepost,likes,tag,created_at) VALUES($1,$2,$3,$4,$5,$6,NOW())`
+                //  id   | commenter | post_id |           comment            |         created_at              
+                const response = await database.query(post_query,[data.id,data.title,data.author,data.image,0,data.tag])
 
                 if(response){
                     return {message:"post added successfully",success:true}
@@ -62,9 +67,10 @@ export class user_schema{
                 }
 
             }else{
-                const post_text = `INSERT INTO post_user(id,title,author,created_at) VALUES($1,$2,$3,NOW())`
+                const post_text = `INSERT INTO post_user(id,description,author,likes,tag,created_at) VALUES($1,$2,$3,$4,$5,NOW())`
 
-                const response = await database.query(post_text,[data.id,data.title,data.author])
+                const response = await database.query(post_text,[data.id,data.title,data.author,0,data.tag])
+
 
                 if(response){
                     return {message:"post added successfully",success:true}
@@ -84,7 +90,7 @@ export class user_schema{
         }finally{
             database.release();
         }
-    }
+    } //with prom *
 
     async Reset(data:{email:string,newPasswd:string}):Promise<{success:boolean,message:string}>{
         const database = await db.connect();
@@ -242,7 +248,7 @@ export class user_schema{
         const database = await db.connect()
         try{
             const q = `DELETE FROM comment WHERE post_id = $1;`
-            const delete_query=`DELETE  FROM post_user  WHERE post_user.id = $1 AND post_user.author = $2;` //
+            const delete_query=`DELETE  FROM post_user  WHERE post_user.id = $1 AND post_user.author = $2 RETURNING imagepost;` //
             await database.query(q,[id])
             const response = await database.query(delete_query,[id,author])
 
@@ -251,7 +257,8 @@ export class user_schema{
             if(response.rowCount && response.rowCount > 0){
                 return {
                     success:true,
-                    message:"post deleted successfully"
+                    message:"post deleted successfully",
+                    image:response.rows[0].imagepost
                 }
 
             }else{
@@ -267,4 +274,52 @@ export class user_schema{
             }
         }
     }
+
+    //Give Like.....and add comment
+    async addComment(data:{comment:string,commenter:string,post_id:string}){
+        const database = await db.connect()
+
+        try {
+            const id = uuid()
+            const c_query = `INSERT INTO comment(id,commenter,comment,post_id,created_at) VALUES($1,$2,$3,$4,NOW())`
+            const response = await database.query(c_query,[id,data.commenter,data.comment,data.post_id])
+
+            if(response && response.rowCount && response.rowCount > 0){
+                return{message:'comment added successfully',success:true}
+            }else{
+                return{message:'Post not found',success:false}
+            }
+        } catch (error) {
+            return {message:"post not found",success:false}
+        }
+    }
+
+
+    async addLike(data:{post_id:string}){
+        const database = await db.connect()
+
+        try {
+            //firstPart
+            const r = await this.get_a_post_by_id(data.post_id)
+
+            if(r.success && r.data){
+                const like = r.data[0].likes + 1
+                //secondPart
+                const c_query = `UPDATE post_user SET likes = $1 WHERE id = $2`
+                const response = await database.query(c_query,[like,data.post_id])
+                
+                if(response && response.rowCount && response.rowCount > 0){
+                    return{message:'OK',success:true}
+                }else{
+                    return{message:'Post not found',success:false}
+                }
+            }else{
+                return{message:'Post not found',success:false}
+            }
+
+        } catch (error) {
+            return {message:"an error",success:false}
+        }
+    }
+    
 }
